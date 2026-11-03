@@ -1,158 +1,87 @@
-import { useEffect, useState } from "react";
-import { status } from "./api";
-import { Follow } from "./follow";
-import { Habitat, Mark } from "./habitat";
-import { initialDraft, type Account, type EventDraft } from "./model";
-import { Prepare } from "./prepare";
+import { lazy, Suspense, useEffect, useRef, useState, type MouseEvent } from "react";
+import { flushSync } from "react-dom";
+import { Home } from "./home";
+import { Mark } from "./habitat";
+import { homeHref, ownsPath, pageFromPath, pageTitle } from "./route";
 
-const storage = "soc-minis-event-v1";
+const Eventy = lazy(() => import("./eventy").then((module) => ({ default: module.Eventy })));
+const Preview = lazy(() => import("./preview").then((module) => ({ default: module.Preview })));
+const Lost = lazy(() => import("./lost").then((module) => ({ default: module.Lost })));
+
+export { miniHref, pageFromPath } from "./route";
+export type { Mini } from "./minis";
 
 export function App() {
-  const [screen, setScreen] = useState<"prepare" | "follow">("prepare"),
-    [draft, setDraft] = useState<EventDraft>(loadDraft),
-    [account, setAccount] = useState<Account | null>(null),
-    [accountError, setAccountError] = useState("");
+  const [route, setRoute] = useState(() => location.pathname + location.search),
+    page = pageFromPath(new URL(route, location.origin).pathname),
+    mounted = useRef(false);
 
   useEffect(() => {
-    localStorage.setItem(storage, JSON.stringify(draft));
-  }, [draft]);
-
-  const refreshAccount = async () => {
-    try {
-      setAccount(await status());
-      setAccountError("");
-    } catch (error) {
-      setAccountError((error as Error).message);
-    }
-  };
+    document.title = pageTitle(page);
+    if (mounted.current) document.querySelector<HTMLElement>("#main")?.focus({ preventScroll: true });
+    else mounted.current = true;
+  }, [page]);
 
   useEffect(() => {
-    void refreshAccount();
+    const back = () => setRoute(location.pathname + location.search);
+    addEventListener("popstate", back);
+    return () => removeEventListener("popstate", back);
   }, []);
 
+  const navigate = (event: MouseEvent<HTMLDivElement>) => {
+    const link = (event.target as HTMLElement).closest<HTMLAnchorElement>("a[href]");
+    if (!link || event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || link.target || link.download)
+      return;
+    const destination = new URL(link.href, location.href);
+    if (destination.origin !== location.origin || !ownsPath(destination.pathname)) return;
+    event.preventDefault();
+    const commit = () => {
+      history.pushState(null, "", destination);
+      flushSync(() => setRoute(destination.pathname + destination.search));
+      scrollTo({ top: 0 });
+    };
+    const transition = (document as TransitionDocument).startViewTransition;
+    const reduceMotion = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (transition && !reduceMotion)
+      transition.call(document, commit);
+    else commit();
+  };
+
   return (
-    <div className="site-shell">
-      <a className="skip-link" href="#eventy-workspace">Skip to Eventy</a>
+    <div className={`site-shell page-${page}`} onClick={navigate}>
+      <a className="skip-link" href="#main">Skip to content</a>
       <header className="site-head">
-        <a className="brand" href={import.meta.env.BASE_URL} aria-label="SOC Minis home">
-          <span className="brand-mark">
-            <Mark />
-          </span>
+        <a className="brand" href={homeHref} aria-label="SOC Minis home" aria-current={page === "home" ? "page" : undefined}>
+          <span className="brand-mark"><Mark /></span>
           <span>SOC Minis</span>
         </a>
-        <span className="head-note">Made for society teams</span>
+        {page === "home" ? (
+          <span className="head-note">Tools for society teams</span>
+        ) : (
+          <a className="all-minis" href={homeHref}>All minis</a>
+        )}
       </header>
 
-      <main>
-        <section className="hero" aria-labelledby="hero-title">
-          <Habitat />
-          <div className="hero-layout">
-            <div className="hero-copy">
-              <p className="eyebrow">Club operations, brought ashore</p>
-              <h1 id="hero-title">Run the club. Keep the chaos out.</h1>
-              <p>Eventy is ready today. Monkey and Meddy are being shaped around the work that still lives in receipts, spreadsheets and too many logins.</p>
-            </div>
+      <Suspense
+        fallback={
+          <main id="main" className="route-loading" tabIndex={-1}>
+            <span aria-hidden="true" />
+            <p role="status">Sailing to {pageTitle(page)}…</p>
+          </main>
+        }
+      >
+        {page === "home" && <Home />}
+        {page === "eventy" && <Eventy />}
+        {page === "monkey" && <Preview mini="monkey" />}
+        {page === "meddy" && <Preview mini="meddy" />}
+        {page === "not-found" && <Lost />}
+      </Suspense>
 
-            <section className="product-shelf" aria-label="SOC Minis products">
-              <article className="product eventy-product">
-                <div className="product-head">
-                  <span className="product-icon eventy-icon" aria-hidden="true"><Mark /></span>
-                  <span className="product-state available">Available now</span>
-                </div>
-                <h2>Eventy</h2>
-                <p className="product-pitch">Events, without the admin fog</p>
-                <p>Plan the gathering, prepare editable risk files and quietly follow the booking</p>
-                <nav className="product-actions" aria-label="Eventy views">
-                  <a
-                    href="#eventy-workspace"
-                    aria-current={screen === "prepare" ? "page" : undefined}
-                    onClick={() => setScreen("prepare")}
-                  >
-                    Plan an event
-                  </a>
-                  <a
-                    href="#eventy-workspace"
-                    aria-current={screen === "follow" ? "page" : undefined}
-                    onClick={() => setScreen("follow")}
-                  >
-                    Follow a booking
-                  </a>
-                </nav>
-              </article>
-
-              <article className="product preview-product monkey-product" aria-disabled="true">
-                <div className="product-head">
-                  <span className="product-icon" aria-hidden="true">▦</span>
-                  <span className="product-state">Coming soon</span>
-                </div>
-                <h2>Monkey</h2>
-                <p className="product-pitch">Money you can trace</p>
-                <p>Receipts in, executive approval clear and every reimbursement numbered</p>
-                <ul>
-                  <li>Receipt intake from WhatsApp, Instagram and Messenger, with executive verification</li>
-                  <li>Reimbursements, numbered references, AFR and union exports, budgets and ticket modelling</li>
-                  <li>Read-only bank matching, spending insights, unusual-transaction review and tamper-evident role history</li>
-                </ul>
-              </article>
-
-              <article className="product preview-product meddy-product" aria-disabled="true">
-                <div className="product-head">
-                  <span className="product-icon" aria-hidden="true">↗</span>
-                  <span className="product-state">Coming soon</span>
-                </div>
-                <h2>Meddy</h2>
-                <p className="product-pitch">One post, properly adapted</p>
-                <p>Compose captions and media once, adapt each destination, then publish to Instagram, LinkedIn and Discord</p>
-                <p className="product-detail">Team approvals · channel previews · publish history</p>
-              </article>
-            </section>
-          </div>
-        </section>
-
-        <p className="preview-note">Monkey and Meddy are product previews. No bank, messaging or social account is connected yet.</p>
-
-        <section
-          className="workbench"
-          id="eventy-workspace"
-          tabIndex={-1}
-          aria-label={screen === "prepare" ? "Prepare event" : "Booking follow-up"}
-        >
-          <div className="workbench-head">
-            <span>Eventy</span>
-            <strong>{screen === "prepare" ? "Plan an event" : "Follow a booking"}</strong>
-          </div>
-          {accountError && (
-            <div className="notice error" role="alert">
-              <strong>Connection needs attention</strong>
-              <span>{accountError}</span>
-              <button type="button" onClick={() => void refreshAccount()}>
-                Try again
-              </button>
-            </div>
-          )}
-          {screen === "prepare" ? (
-            <Prepare draft={draft} setDraft={setDraft} account={account} />
-          ) : (
-            <Follow
-              draft={draft}
-              account={account}
-              refreshAccount={refreshAccount}
-              prepare={() => setScreen("prepare")}
-            />
-          )}
-        </section>
-      </main>
       <footer>Event files and mailbox authority stay in your private workspace</footer>
     </div>
   );
 }
 
-function loadDraft(): EventDraft {
-  try {
-    const saved = JSON.parse(localStorage.getItem(storage) || "null");
-    if (saved && typeof saved === "object") return { ...initialDraft, ...saved };
-  } catch {
-    localStorage.removeItem(storage);
-  }
-  return initialDraft;
-}
+type TransitionDocument = Document & {
+  startViewTransition?: (update: () => void) => unknown;
+};

@@ -6,10 +6,21 @@
     <meta name="theme-color" content="#123b4a" />
     <meta name="description" content="Practical event tools for student society teams" />
     <link rel="icon" href="/soc/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/soc/art/sky-pirates.webp" as="image" type="image/webp" />
+    <style>
+      html,body,#root{min-height:100%;margin:0}.boot{position:fixed;inset:0;overflow:hidden;background:#b9dcda;color:#173a43;font:800 1.2rem ui-rounded,"Arial Rounded MT Bold",sans-serif}.boot-art{position:absolute;inset:-2%;background:url("/soc/art/sky-pirates.webp") center/cover}.boot-brand{position:absolute;top:24px;left:max(20px,calc((100% - 1240px)/2));padding:10px 14px;border:2px solid #244d57;background:#fff9eb;box-shadow:2px 3px 0 #244d57}.boot-status{position:absolute;right:24px;bottom:22px;font:700 .8rem "Avenir Next",sans-serif}@media(prefers-color-scheme:dark){.boot{background:#101c21;color:#f2efe5}.boot-art{filter:brightness(.55) saturate(.9)}.boot-brand{border-color:#91a8ac;background:#222f33;box-shadow:2px 3px 0 #91a8ac}}
+    </style>
     <title>SOC Minis</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="boot" role="status" aria-label="SOC Minis is loading">
+        <div class="boot-art" aria-hidden="true"></div>
+        <strong class="boot-brand">SOC Minis</strong>
+        <span class="boot-status">Charting the islands…</span>
+      </div>
+    </div>
+    <noscript>SOC Minis needs JavaScript to prepare event files and follow bookings</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

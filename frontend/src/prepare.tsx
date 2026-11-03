@@ -1,9 +1,10 @@
 import { useRef, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { prepare, rooms } from "./api";
+import { ErrorDialog } from "./dialog";
+import { useOptions } from "./draft";
 import type { Account, EventDraft, Prepared, Room } from "./model";
 
 const steps = ["Event", "Venue", "Timing", "People", "Shape", "Prepare"];
-
 export function Prepare({
   draft,
   setDraft,
@@ -11,11 +12,10 @@ export function Prepare({
 }: {
   draft: EventDraft;
   setDraft: Dispatch<SetStateAction<EventDraft>>;
-  account: Account | null;
+  account: Account;
 }) {
-  const [step, setStep] = useState(0),
-    [mode, setMode] = useState("both"),
-    [layout, setLayout] = useState("form"),
+  const [{ mode, layout }, setMode, setLayout] = useOptions(`hosted:${account.workspace}`),
+    [step, setStep] = useState(0),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [result, setResult] = useState<Prepared | null>(null),
@@ -66,23 +66,25 @@ export function Prepare({
       </aside>
 
       <div className="step-panel">
-        {error && <Popup message={error} close={() => setError("")} />}
-        <form ref={form} onSubmit={next}>
+        {error && <ErrorDialog message={error} close={() => setError("")} />}
+        <form ref={form} onSubmit={next} autoComplete="on">
           {step === 0 && (
             <Step title="Name the gathering" note="Start with what people need to recognise">
               <Field label="Club or society">
-                <input value={draft.club} onChange={(event) => update("club", event.target.value)} required />
+                <input name="club" autoComplete="organization" value={draft.club} onChange={(event) => update("club", event.target.value)} required />
               </Field>
               <div className="field-row">
                 <Field label="Event name">
-                  <input value={draft.title} onChange={(event) => update("title", event.target.value)} required />
+                  <input name="title" autoComplete="off" value={draft.title} onChange={(event) => update("title", event.target.value)} required />
                 </Field>
                 <Field label="Date">
-                  <input type="date" value={draft.date} onChange={(event) => update("date", event.target.value)} required />
+                  <input name="date" autoComplete="off" type="date" value={draft.date} onChange={(event) => update("date", event.target.value)} required />
                 </Field>
               </div>
               <Field label="What will happen?">
                 <textarea
+                  name="summary"
+                  autoComplete="off"
                   value={draft.summary}
                   onChange={(event) => update("summary", event.target.value)}
                   rows={5}
@@ -98,6 +100,8 @@ export function Prepare({
             <Step title="Set the tide" note="Include setup and pack-up so the room request is accurate">
               <TimeRow
                 title="Setup"
+                startName="setupStart"
+                endName="setupEnd"
                 start={draft.setupStart}
                 end={draft.setupEnd}
                 setStart={(value) => update("setupStart", value)}
@@ -105,6 +109,8 @@ export function Prepare({
               />
               <TimeRow
                 title="Event"
+                startName="eventStart"
+                endName="eventEnd"
                 start={draft.eventStart}
                 end={draft.eventEnd}
                 setStart={(value) => update("eventStart", value)}
@@ -112,6 +118,8 @@ export function Prepare({
               />
               <TimeRow
                 title="Pack-up"
+                startName="packStart"
+                endName="packEnd"
                 start={draft.packStart}
                 end={draft.packEnd}
                 setStart={(value) => update("packStart", value)}
@@ -124,29 +132,29 @@ export function Prepare({
             <Step title="Name the coordinator" note="This is the person UQ can contact about the booking">
               <div className="field-row">
                 <Field label="Coordinator name">
-                  <input value={draft.coordinator} onChange={(event) => update("coordinator", event.target.value)} required />
+                  <input name="coordinator" autoComplete="name" value={draft.coordinator} onChange={(event) => update("coordinator", event.target.value)} required />
                 </Field>
                 <Field label="Role">
-                  <input value={draft.role} onChange={(event) => update("role", event.target.value)} required />
+                  <input name="role" autoComplete="organization-title" value={draft.role} onChange={(event) => update("role", event.target.value)} required />
                 </Field>
               </div>
               <div className="field-row">
                 <Field label="Email">
-                  <input type="email" value={draft.email} onChange={(event) => update("email", event.target.value)} required />
+                  <input name="email" autoComplete="email" type="email" value={draft.email} onChange={(event) => update("email", event.target.value)} required />
                 </Field>
                 <Field label="Phone">
-                  <input type="tel" value={draft.phone} onChange={(event) => update("phone", event.target.value)} required />
+                  <input name="phone" autoComplete="tel" type="tel" value={draft.phone} onChange={(event) => update("phone", event.target.value)} required />
                 </Field>
               </div>
               <div className="field-row three">
                 <Field label="Expected guests">
-                  <input min="1" type="number" value={draft.attendance} onChange={(event) => update("attendance", event.target.value)} required />
+                  <input name="attendance" autoComplete="off" min="1" type="number" value={draft.attendance} onChange={(event) => update("attendance", event.target.value)} required />
                 </Field>
                 <Field label="Under 18">
-                  <input min="0" type="number" value={draft.under18} onChange={(event) => update("under18", event.target.value)} required />
+                  <input name="under18" autoComplete="off" min="0" type="number" value={draft.under18} onChange={(event) => update("under18", event.target.value)} required />
                 </Field>
                 <Field label="Outside UQ">
-                  <input min="0" type="number" value={draft.nonUq} onChange={(event) => update("nonUq", event.target.value)} required />
+                  <input name="nonUq" autoComplete="off" min="0" type="number" value={draft.nonUq} onChange={(event) => update("nonUq", event.target.value)} required />
                 </Field>
               </div>
             </Step>
@@ -170,6 +178,8 @@ export function Prepare({
                 ).map(([key, label]) => (
                   <label className="choice" key={key}>
                     <input
+                      name={key}
+                      autoComplete="off"
                       type="checkbox"
                       checked={Boolean(draft[key])}
                       onChange={(event) => update(key, event.target.checked as never)}
@@ -179,17 +189,17 @@ export function Prepare({
                 ))}
               </div>
               <Field label="Food and drink">
-                <input value={draft.food} onChange={(event) => update("food", event.target.value)} placeholder="Leave blank if none" />
+                <input name="food" autoComplete="off" value={draft.food} onChange={(event) => update("food", event.target.value)} placeholder="Leave blank if none" />
               </Field>
               <div className="field-row">
                 <Field label="UQ affiliated">
-                  <select value={draft.affiliated} onChange={(event) => update("affiliated", event.target.value)}>
+                  <select name="affiliated" autoComplete="off" value={draft.affiliated} onChange={(event) => update("affiliated", event.target.value)}>
                     <option>Yes</option>
                     <option>No</option>
                   </select>
                 </Field>
                 <Field label="Other dates that work">
-                  <input value={draft.flexibility} onChange={(event) => update("flexibility", event.target.value)} />
+                  <input name="flexibility" autoComplete="off" value={draft.flexibility} onChange={(event) => update("flexibility", event.target.value)} />
                 </Field>
               </div>
             </Step>
@@ -206,7 +216,7 @@ export function Prepare({
                     ["form", "Booking preview only"],
                   ].map(([value, label]) => (
                     <label key={value}>
-                      <input type="radio" name="mode" value={value} checked={mode === value} onChange={() => setMode(value)} />
+                      <input type="radio" name="mode" autoComplete="off" value={value} checked={mode === value} onChange={() => setMode(value)} />
                       {label}
                     </label>
                   ))}
@@ -220,7 +230,7 @@ export function Prepare({
                       ["both", "Both"],
                     ].map(([value, label]) => (
                       <label key={value}>
-                        <input type="radio" name="layout" value={value} checked={layout === value} onChange={() => setLayout(value)} />
+                        <input type="radio" name="layout" autoComplete="off" value={value} checked={layout === value} onChange={() => setLayout(value)} />
                         {label}
                       </label>
                     ))}
@@ -258,7 +268,7 @@ export function Prepare({
                       {account?.forms_ready ? (
                         <>
                           <label>
-                            <input type="checkbox" checked={reviewed} onChange={(event) => setReviewed(event.target.checked)} />
+                            <input name="bookingReviewed" autoComplete="off" type="checkbox" checked={reviewed} onChange={(event) => setReviewed(event.target.checked)} />
                             I checked this booking and want to send it now
                           </label>
                           <button type="button" disabled={!reviewed || busy} onClick={() => void make(true)}>
@@ -322,9 +332,11 @@ function Venue({
 
   return (
     <Step title="Find a landing place" note="Search by campus, building, room type or capacity">
-      <div className="room-search">
+      <div className="room-search" role="search">
         <input
           aria-label="Room search"
+          name="roomSearch"
+          autoComplete="off"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Try Steele, collaborative, or 50 people"
@@ -339,7 +351,7 @@ function Venue({
           {searching ? "Searching…" : "Find rooms"}
         </button>
       </div>
-      {error && <p className="inline-error" role="alert">{error}</p>}
+      {error && <ErrorDialog message={error} close={() => setError("")} />}
       {matches.length > 0 && (
         <ul className="room-results" aria-label="Matching rooms">
           {matches.map((room) => (
@@ -364,13 +376,13 @@ function Venue({
       </div>
       <div className="field-row three">
         <Field label="Campus">
-          <input value={draft.campus} onChange={(event) => update("campus", event.target.value)} required />
+          <input name="campus" autoComplete="off" value={draft.campus} onChange={(event) => update("campus", event.target.value)} required />
         </Field>
         <Field label="Building">
-          <input value={draft.building} onChange={(event) => update("building", event.target.value)} required />
+          <input name="building" autoComplete="off" value={draft.building} onChange={(event) => update("building", event.target.value)} required />
         </Field>
         <Field label="Room">
-          <input value={draft.room} onChange={(event) => update("room", event.target.value)} required />
+          <input name="room" autoComplete="off" value={draft.room} onChange={(event) => update("room", event.target.value)} required />
         </Field>
       </div>
     </Step>
@@ -398,12 +410,16 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function TimeRow({
   title,
+  startName,
+  endName,
   start,
   end,
   setStart,
   setEnd,
 }: {
   title: string;
+  startName: string;
+  endName: string;
   start: string;
   end: string;
   setStart: (value: string) => void;
@@ -414,27 +430,14 @@ function TimeRow({
       <legend>{title}</legend>
       <label>
         <span>Starts</span>
-        <input type="time" value={start} onChange={(event) => setStart(event.target.value)} required />
+        <input name={startName} autoComplete="off" type="time" value={start} onChange={(event) => setStart(event.target.value)} required />
       </label>
       <span aria-hidden="true">to</span>
       <label>
         <span>Ends</span>
-        <input type="time" value={end} onChange={(event) => setEnd(event.target.value)} required />
+        <input name={endName} autoComplete="off" type="time" value={end} onChange={(event) => setEnd(event.target.value)} required />
       </label>
     </fieldset>
-  );
-}
-
-function Popup({ message, close }: { message: string; close: () => void }) {
-  return (
-    <div className="popup-shade">
-      <div className="popup" role="alertdialog" aria-modal="true" aria-labelledby="problem-title">
-        <span className="popup-bird" aria-hidden="true">⌁</span>
-        <h2 id="problem-title">That part needs attention</h2>
-        <p>{message}</p>
-        <button type="button" autoFocus onClick={close}>Back to the event</button>
-      </div>
-    </div>
   );
 }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { act, bookings, pollMicrosoft, startMicrosoft, watch } from "./api";
+import { ErrorDialog } from "./dialog";
 import type { Account, Booking, EventDraft } from "./model";
 
 export function Follow({
@@ -39,7 +40,8 @@ export function Follow({
 
   useEffect(() => {
     if (!flow) return;
-    let active = true;
+    let active = true,
+      timer = 0;
     const check = async () => {
       try {
         const result = await pollMicrosoft(flow.id);
@@ -49,12 +51,12 @@ export function Follow({
           await refreshAccount();
           return;
         }
-        window.setTimeout(check, Math.max(1, result.retry_after) * 1000);
+        timer = window.setTimeout(check, Math.max(1, result.retry_after) * 1000);
       } catch (failure) {
         if (active) setError((failure as Error).message);
       }
     };
-    const timer = window.setTimeout(check, Math.max(1, flow.interval_seconds) * 1000);
+    timer = window.setTimeout(check, Math.max(1, flow.interval_seconds) * 1000);
     return () => {
       active = false;
       window.clearTimeout(timer);
@@ -94,6 +96,7 @@ export function Follow({
 
   return (
     <div className="follow-grid">
+      {error && <ErrorDialog message={error} close={() => setError("")} retry={() => void refresh()} />}
       <section className="mail-connection" aria-labelledby="mail-heading">
         <div className="section-title">
           <span className="section-icon" aria-hidden="true">✉</span>
@@ -102,7 +105,6 @@ export function Follow({
             <p>Replies are checked automatically</p>
           </div>
         </div>
-        {error && <div className="inline-error" role="alert">{error}</div>}
         {account?.microsoft_mailbox ? (
           <div className="connected-account">
             <span aria-hidden="true">✓</span>
@@ -119,10 +121,10 @@ export function Follow({
             <small>Waiting here for Microsoft to finish…</small>
           </div>
         ) : (
-          <form className="connect-form" onSubmit={connect}>
+          <form className="connect-form" onSubmit={connect} autoComplete="on">
             <label>
               <span>Society mailbox</span>
-              <input type="email" value={mailbox} onChange={(event) => setMailbox(event.target.value)} placeholder="events@example.org" required />
+              <input name="mailbox" autoComplete="email" type="email" value={mailbox} onChange={(event) => setMailbox(event.target.value)} placeholder="events@example.org" required />
             </label>
             <button type="submit" disabled={!account?.microsoft_ready}>Connect Microsoft</button>
             {account && !account.microsoft_ready && <p>The Microsoft app registration needs configuring on the server</p>}
@@ -139,14 +141,14 @@ export function Follow({
           </div>
         </div>
         {draft.title ? (
-          <form onSubmit={follow}>
+          <form onSubmit={follow} autoComplete="on">
             <div className="event-chip">
               <strong>{draft.title}</strong>
               <span>{draft.date || "Date not set"} · {draft.room || "Room not set"}</span>
             </div>
             <label>
               <span>UQ event reference</span>
-              <input value={eventId} onChange={(event) => setEventId(event.target.value)} placeholder="Reference ID" pattern="[A-Za-z0-9_-]{1,80}" required />
+              <input name="eventId" autoComplete="off" value={eventId} onChange={(event) => setEventId(event.target.value)} placeholder="Reference ID" pattern="[A-Za-z0-9_-]{1,80}" required />
             </label>
             <button type="submit" disabled={!account?.microsoft_mailbox}>Follow this booking</button>
           </form>

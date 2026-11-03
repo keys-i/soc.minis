@@ -1,44 +1,151 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, test, vi } from "vitest";
-import { App } from "../src/app";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { App, pageFromPath } from "../src/app";
+import { status } from "../src/api";
+
+Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true, scrollTo: vi.fn() });
 
 vi.mock("../src/api", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../src/api")>()),
-  status: vi.fn().mockResolvedValue({ microsoft_mailbox: null, microsoft_ready: false, forms_ready: false }),
+  status: vi.fn().mockResolvedValue({ workspace: "0123456789abcdef01234567", microsoft_mailbox: null, microsoft_ready: false, forms_ready: false }),
   bookings: vi.fn().mockResolvedValue([]),
 }));
 
-describe("product shelf", () => {
-  test("keeps Monkey and Meddy as honest non-interactive previews", () => {
+afterEach(() => {
+  history.replaceState(null, "", "/soc/");
+  localStorage.clear();
+  vi.mocked(status).mockResolvedValue({ workspace: "0123456789abcdef01234567", microsoft_mailbox: null, microsoft_ready: false, forms_ready: false });
+});
+
+describe("mini routes", () => {
+  test("keeps the home focused on three real mini pages", () => {
+    history.replaceState(null, "", "/soc/");
     const host = document.createElement("div");
     host.innerHTML = renderToStaticMarkup(<App />);
 
-    const previews = [...host.querySelectorAll<HTMLElement>(".preview-product")];
-    expect(previews).toHaveLength(2);
-    expect(previews.map((preview) => preview.querySelector("h2")?.textContent)).toEqual(["Monkey", "Meddy"]);
-    for (const preview of previews) {
-      expect(preview.getAttribute("aria-disabled")).toBe("true");
-      expect(preview.querySelector("a, button, input")).toBeNull();
-      expect(preview.textContent).toContain("Coming soon");
-    }
+    const links = [...host.querySelectorAll<HTMLAnchorElement>(".mini-landmark")];
+    expect(links.map((link) => link.textContent)).toEqual([
+      expect.stringContaining("Eventy"),
+      expect.stringContaining("Monkey"),
+      expect.stringContaining("Meddy"),
+    ]);
+    expect(links.map((link) => link.getAttribute("href"))).toEqual(["/soc/eventy", "/soc/monkey", "/soc/meddy"]);
+    expect(host.querySelector(".eventy-workspace")).toBeNull();
   });
 
-  test("switches the real workspace when a route is selected", async () => {
+  test("keeps coming-soon minis honest on their own pages", async () => {
+    history.replaceState(null, "", "/soc/monkey");
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    await act(async () => root.render(<App />));
+    await vi.waitFor(() => expect(host.querySelector(".preview-monkey")).not.toBeNull());
+
+    expect(host.querySelector(".preview-monkey")).not.toBeNull();
+    expect(host.textContent).toContain("Coming soon");
+    expect(host.textContent).toContain("No bank or messaging account is connected yet");
+    expect(host.querySelector("main button, main input, main a")).toBeNull();
+    await act(async () => root.unmount());
+    host.remove();
+  });
+
+  test("moves between mini pages without replacing the document", async () => {
+    history.replaceState(null, "", "/soc/");
     const host = document.createElement("div");
     document.body.append(host);
     const root = createRoot(host);
     await act(async () => root.render(<App />));
 
-    const routes = [...host.querySelectorAll<HTMLAnchorElement>(".product-actions a")];
-    expect(routes).toHaveLength(2);
-    expect(routes.every((route) => route.getAttribute("href") === "#eventy-workspace")).toBe(true);
+    const monkey = host.querySelector<HTMLAnchorElement>('[href="/soc/monkey"]')!;
+    await act(async () => monkey.click());
+    expect(location.pathname).toBe("/soc/monkey");
+    await vi.waitFor(() => expect(host.querySelector(".preview-monkey")).not.toBeNull());
 
-    await act(async () => routes[1].click());
-    expect(routes[1].getAttribute("aria-current")).toBe("page");
-    expect(host.querySelector("#eventy-workspace")?.getAttribute("aria-label")).toBe("Booking follow-up");
+    await act(async () => root.unmount());
+    host.remove();
+  });
+
+  test("switches the Eventy workspace and preserves its direct URL", async () => {
+    history.replaceState(null, "", "/soc/eventy");
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    await act(async () => root.render(<App />));
+    await vi.waitFor(() => expect(host.querySelector(".eventy-tabs")).not.toBeNull());
+
+    const tabs = [...host.querySelectorAll<HTMLButtonElement>(".eventy-tabs button")];
+    expect(tabs).toHaveLength(2);
+    await act(async () => tabs[1].click());
+    expect(tabs[1].getAttribute("aria-pressed")).toBe("true");
+    expect(host.querySelector(".eventy-workspace")?.getAttribute("aria-label")).toBe("Booking follow-up");
     expect(host.textContent).toContain("Booking mailbox");
+    expect(location.pathname + location.search).toBe("/soc/eventy?view=follow");
+
+    await act(async () => root.unmount());
+    host.remove();
+  });
+
+  test("waits for the hosted workspace before opening a draft", async () => {
+    let open!: (account: Awaited<ReturnType<typeof status>>) => void;
+    vi.mocked(status).mockReturnValueOnce(new Promise((resolve) => { open = resolve; }));
+    history.replaceState(null, "", "/soc/eventy");
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    await act(async () => root.render(<App />));
+    await vi.waitFor(() => expect(host.querySelector(".workspace-loading")).not.toBeNull());
+
+    expect(host.querySelector(".workspace-loading")?.textContent).toContain("Opening your private workspace");
+    expect(host.querySelector('[name="club"]')).toBeNull();
+    expect(localStorage.getItem("soc-minis:workspace:v1")).toBeNull();
+
+    await act(async () => open({ workspace: "fedcba9876543210fedcba98", microsoft_mailbox: null, microsoft_ready: false, forms_ready: false }));
+    await vi.waitFor(() => expect(host.querySelector('[name="club"]')).not.toBeNull());
+    expect(localStorage.getItem("soc-minis:workspace:v1")).toBeNull();
+
+    await act(async () => root.unmount());
+    host.remove();
+  });
+
+  test("parses only supported mini routes", () => {
+    expect(pageFromPath("/soc/meddy")).toBe("meddy");
+    expect(pageFromPath("/soc/unknown")).toBe("not-found");
+  });
+
+  test("keeps an unknown SOC address inside a useful not-found page", async () => {
+    history.replaceState(null, "", "/soc/missing-mini");
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    await act(async () => root.render(<App />));
+    await vi.waitFor(() => expect(host.querySelector(".lost-page")).not.toBeNull());
+
+    expect(host.querySelector(".lost-page")).not.toBeNull();
+    expect(host.textContent).toContain("That island isn't on the chart");
+    expect(host.querySelector<HTMLAnchorElement>(".lost-copy a")?.getAttribute("href")).toBe("/soc/");
+    await act(async () => root.unmount());
+    host.remove();
+  });
+
+  test("restores the semantic draft and output choices", async () => {
+    localStorage.setItem("soc-minis-event-v1", JSON.stringify({ club: "UQ Robotics" }));
+    localStorage.setItem("soc-minis-event-options-v1", JSON.stringify({ mode: "risk", layout: "pack" }));
+    history.replaceState(null, "", "/soc/eventy");
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    await act(async () => root.render(<App />));
+    await vi.waitFor(() => expect(host.querySelector('[name="club"]')).not.toBeNull());
+
+    const club = host.querySelector<HTMLInputElement>('[name="club"]')!;
+    expect(club.value).toBe("UQ Robotics");
+    expect(club.autocomplete).toBe("organization");
+    const prepare = [...host.querySelectorAll<HTMLButtonElement>(".steps button")].at(-1)!;
+    await act(async () => prepare.click());
+    expect(host.querySelector<HTMLInputElement>('[name="mode"][value="risk"]')?.checked).toBe(true);
+    expect(host.querySelector<HTMLInputElement>('[name="layout"][value="pack"]')?.checked).toBe(true);
 
     await act(async () => root.unmount());
     host.remove();

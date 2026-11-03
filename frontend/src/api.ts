@@ -25,6 +25,8 @@ export async function status(): Promise<Account> {
   const value = await request("status");
   if (
     !record(value) ||
+    typeof value.workspace !== "string" ||
+    !/^[A-Za-z0-9_-]{8,128}$/.test(value.workspace) ||
     !(value.microsoft_mailbox === null || typeof value.microsoft_mailbox === "string") ||
     typeof value.microsoft_ready !== "boolean" ||
     typeof value.forms_ready !== "boolean"

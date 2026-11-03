@@ -54,6 +54,7 @@ export type Prepared = {
 };
 
 export type Account = {
+  workspace: string;
   microsoft_mailbox: string | null;
   microsoft_ready: boolean;
   forms_ready: boolean;
