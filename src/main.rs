@@ -124,6 +124,8 @@ enum AgentCommand {
 struct ServeArgs {
     #[arg(long, env = "SOC_BIND", default_value = "127.0.0.1:8787")]
     bind: String,
+    #[arg(long, env = "SOC_SOCKET", conflicts_with = "bind")]
+    socket: Option<PathBuf>,
     #[arg(long, env = "SOC_BASE", default_value = "/soc")]
     base: String,
     #[arg(long, env = "SOC_DATA", default_value = ".config/soc")]
@@ -149,6 +151,7 @@ async fn main() -> Result<()> {
         Command::Serve(arguments) => {
             web::serve(web::Config {
                 bind: arguments.bind,
+                socket: arguments.socket,
                 base: arguments.base,
                 data: arguments.data,
                 frontend: arguments.frontend,

@@ -23,12 +23,13 @@ hmac = "0.12.1"
 percent-encoding = "2.3.2"
 regex = "1.13.1"
 reqwest = { version = "0.13.4", default-features = false, features = ["json", "form", "rustls"] }
+rsa = { version = "0.9.10", default-features = false, features = ["std", "sha2", "u64_digit"] }
 rusqlite = { version = "0.40.2", features = ["bundled"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
 sha2 = "0.10.9"
 thiserror = "2.0.21"
-tokio = { version = "1.54.0", features = ["macros", "net", "rt-multi-thread", "signal", "time"] }
+tokio = { version = "1.54.0", features = ["macros", "net", "rt-multi-thread", "signal", "sync", "time"] }
 toml = "1.1.6"
 tower-http = { version = "0.6.11", features = ["compression-gzip", "fs", "limit", "set-header", "trace"] }
 tracing = "0.1.44"
@@ -38,6 +39,7 @@ uuid = { version = "1.26.0", features = ["v4"] }
 zip = { version = "2.4.2", default-features = false, features = ["deflate"] }
 
 [dev-dependencies]
+rand = "0.8.8"
 tower = { version = "0.5.3", features = ["util"] }
 
 [profile.release]

@@ -4,6 +4,7 @@ use std::{
     time::Duration,
 };
 
+use chrono::Utc;
 use rusqlite::{Connection, OpenFlags};
 
 use crate::{
@@ -89,6 +90,14 @@ impl Store {
                     PRIMARY KEY(owner, event_id)
                 );
                 CREATE INDEX IF NOT EXISTS events_pending ON events(owner, state, since);
+                CREATE TABLE IF NOT EXISTS idempotency (
+                    owner TEXT NOT NULL,
+                    operation TEXT NOT NULL,
+                    request_key TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    PRIMARY KEY(owner, operation, request_key)
+                );
+                CREATE INDEX IF NOT EXISTS idempotency_created ON idempotency(created_at);
                 ",
             )?;
             Ok(())
@@ -128,6 +137,37 @@ impl Store {
     pub fn path(&self) -> &Path {
         &self.path
     }
+
+    pub fn ready(&self) -> Result<()> {
+        self.with(|connection| {
+            connection.query_row("SELECT 1", [], |_| Ok(()))?;
+            Ok(())
+        })
+    }
+
+    pub fn claim_once(
+        &self,
+        owner: &str,
+        operation: &str,
+        request_key: &str,
+        retention: Duration,
+    ) -> Result<bool> {
+        self.with(|connection| {
+            let transaction = connection.transaction()?;
+            let retention = chrono::Duration::from_std(retention)
+                .map_err(|_| invalid("The idempotency retention is invalid"))?;
+            transaction.execute(
+                "DELETE FROM idempotency WHERE created_at < ?1",
+                [(Utc::now() - retention).to_rfc3339()],
+            )?;
+            let inserted = transaction.execute(
+                "INSERT OR IGNORE INTO idempotency (owner,operation,request_key,created_at) VALUES (?1,?2,?3,?4)",
+                (owner, operation, request_key, Utc::now().to_rfc3339()),
+            )?;
+            transaction.commit()?;
+            Ok(inserted == 1)
+        })
+    }
 }
 
 #[cfg(test)]
@@ -152,6 +192,17 @@ mod tests {
             })
             .expect("schema");
         assert!(store.path().is_file());
+        assert!(store.ready().is_ok());
+        assert!(
+            store
+                .claim_once("owner", "submit", "same", Duration::from_secs(60))
+                .expect("first claim")
+        );
+        assert!(
+            !store
+                .claim_once("owner", "submit", "same", Duration::from_secs(60))
+                .expect("duplicate claim")
+        );
         fs::remove_dir_all(root).expect("clean state");
     }
 }
