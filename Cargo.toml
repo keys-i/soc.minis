@@ -1,0 +1,52 @@
+[package]
+name = "soc-minis"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97"
+description = "Event preparation and booking follow-up for student societies"
+license = "MIT"
+
+[[bin]]
+name = "soc"
+path = "src/main.rs"
+
+[dependencies]
+axum = { version = "0.8.9", features = ["json", "multipart"] }
+aes-gcm = "0.11.1"
+base64 = "0.23.1"
+chrono = { version = "0.4.45", features = ["serde"] }
+clap = { version = "4.6.7", features = ["derive", "env"] }
+csv = "1.4.0"
+flate2 = "1.1.10"
+getrandom = "0.4.3"
+hmac = "0.12.1"
+percent-encoding = "2.3.2"
+regex = "1.13.1"
+reqwest = { version = "0.13.4", default-features = false, features = ["json", "form", "rustls"] }
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+sha2 = "0.10.9"
+thiserror = "2.0.21"
+tokio = { version = "1.54.0", features = ["macros", "net", "rt-multi-thread", "signal", "time"] }
+toml = "1.1.6"
+tower-http = { version = "0.6.11", features = ["compression-gzip", "fs", "limit", "set-header", "trace"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+url = "2.5.8"
+uuid = { version = "1.26.0", features = ["v4"] }
+zip = { version = "2.4.2", default-features = false, features = ["deflate"] }
+
+[profile.release]
+codegen-units = 1
+lto = "thin"
+strip = "symbols"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+unwrap_used = "deny"
+
+

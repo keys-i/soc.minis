@@ -1,0 +1,96 @@
+[output]
+mode = "both"
+risk_layout = "both"
+
+[document]
+logo = "../../assets/uq-logo.png"
+output_name = "2026-09-15-german-club-movie-night"
+
+[form]
+action = "preview"
+started_at = "2026-09-04T02:31:00.471Z"
+submitted_at = "2026-09-04T02:41:24.046Z"
+
+[form.values]
+affiliated = "Yes"
+date_flexibility = "Not really"
+under_18 = "0"
+non_uq = "0"
+venue_capacity = "21-50"
+option_28 = "No"
+food = "Pizza + drinks (Solo, Sunkist, Pepsi)"
+option_30 = "No"
+option_31 = "No"
+option_32 = "No"
+terms = "Agree"
+
+[club]
+name = "UQ German Club"
+short_name = "German Club"
+executives = "UQ German Club Executives"
+event_officer = "UQ German Club Events Officer"
+
+[event]
+title = "German Club Movie Night"
+date = 2026-09-15
+campus = "St Lucia"
+room = "03-309"
+building = "Steele Building"
+category = "Small"
+summary = "A relaxed UQ German Club movie night featuring a German-language film, snacks and a good yarn with fellow members."
+risk_scope = "The event is a low-risk indoor social activity involving seated movie viewing, light interaction between attendees and general event facilitation by club executives. The scope includes attendee arrival and sign-in, the screening, brief announcements or intermission activities, refreshment distribution and pack-up. No high-risk physical activities are involved."
+target_audience = "UQ students"
+estimated_attendance = "15-20"
+activity = "seated movie viewing and light social activities"
+entertainment = "a German-language film screening and normal conversation before and after the film"
+stakeholders = [
+  "UQ German Club Executives",
+  "event attendees",
+  "UQ Union/Student Associations",
+  "venue staff",
+  "UQ Property and Facilities",
+]
+
+[coordinator]
+name = "Coordinator Name"
+role = "Events Officer"
+email = "coordinator@example.com"
+phone = "0400000000"
+
+[schedule]
+setup_start = 17:55:00
+setup_end = 18:00:00
+event_start = 18:00:00
+event_end = 20:30:00
+pack_up_start = 20:00:00
+pack_up_end = 20:05:00
+
+[catering]
+provided = true
+description = "pizza and soft drinks including Solo, Sunkist and Pepsi"
+
+[operations]
+indoor = true
+seated = true
+vehicles = false
+temporary_structures = false
+electrical_equipment = true
+equipment = "existing UQ projector/AV equipment, a laptop and chargers"
+cash_handling = false
+payment_method = "approved cashless or pre-registration methods"
+alcohol = false
+physical_competitions = false
+off_site_impact = false
+
+[application]
+title = "German Club Movie Night Event Pack"
+
+[application.fields]
+"Food and drinks" = "Pizza, Solo, Sunkist and Pepsi"
+"Attendees under 18" = 0
+"Non-UQ attendees" = 0
+"Requested room capacity" = "21-50"
+"Terms accepted" = true
+
+[risk_overrides."12"]
+controls = "Entertainment is limited to {entertainment}. The screening volume will be kept at a reasonable level, and no loud amplified music or disruptive activity is planned."

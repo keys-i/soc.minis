@@ -1,0 +1,149 @@
+[request]
+endpoint = "https://forms.cloud.microsoft/formapi/api/b6e377cf-9db3-46cb-91a2-fad9605bb15c/users/a0b18d47-66a9-4c6c-9f8f-b8ea9489ce0d/forms('z3fjtrOdy0aRovrZYFuxXEeNsaCpZmxMn4-46pSJzg1URjNCSzREUUZTSDFNT1A2N1g2UUZQMk04TC4u')/responses"
+referer = "https://forms.cloud.microsoft/pages/responsepage.aspx?id=z3fjtrOdy0aRovrZYFuxXEeNsaCpZmxMn4-46pSJzg1URjNCSzREUUZTSDFNT1A2N1g2UUZQMk04TC4u&route=shorturl"
+origin = "https://forms.cloud.microsoft"
+ring = "business"
+language = "en-AU,en;q=0.9"
+email_receipt_consent = false
+
+[auth]
+cookie_env = "UQ_FORMS_COOKIE"
+verification_token_env = "UQ_FORMS_VERIFICATION_TOKEN"
+session_id_env = "UQ_FORMS_SESSION_ID"
+muid_env = "UQ_FORMS_MUID"
+
+[[answers]]
+question_id = "r269b9fb3ee6b4200aca94638bffdc547"
+value = "{event_title}"
+
+[[answers]]
+question_id = "r19d148759661404981e18a12716f540d"
+value = "{form_affiliated}"
+
+[[answers]]
+question_id = "r3da0cd53ae554d66a116dbacbaf97ecf"
+value = "{coordinator_role}"
+
+[[answers]]
+question_id = "r50ea1878651d4597b9e66408e212bd83"
+value = "{club}"
+
+[[answers]]
+question_id = "rdbe4e31ee21b4b9fbcc76f0fc37275de"
+value = "{event_date_iso}"
+
+[[answers]]
+question_id = "r116a991eee18402eb12f79d2cdc39150"
+value = "{form_date_flexibility}"
+
+[[answers]]
+question_id = "r87b8b11903154d57bc49807b61dbac2e"
+value = "{event_start}"
+
+[[answers]]
+question_id = "r4479da702ea74465809a5b234484ab93"
+value = "{event_end}"
+
+[[answers]]
+question_id = "r1bf93df699174aa085c9babaf556df94"
+value = "{event_date_iso}"
+
+[[answers]]
+question_id = "rfb397d69af234168bc6397f828c5b5d9"
+value = "{setup_start}"
+
+[[answers]]
+question_id = "r3009a99f39fb47a8bc1bc6c598ec4cca"
+value = "{setup_end}"
+
+[[answers]]
+question_id = "r8a5768c0f55a438187c72ddbc01208b0"
+value = "{event_date_iso}"
+
+[[answers]]
+question_id = "rd24f1ddbecb24d69bdccadb53d9ce3e2"
+value = "{pack_up_start}"
+
+[[answers]]
+question_id = "rf976bd3350e94d5a9beecbd7d47f6a4a"
+value = "{pack_up_end}"
+
+[[answers]]
+question_id = "ra6c2f17ab2264da39b1d81e077990cd7"
+value = "{campus}"
+
+[[answers]]
+question_id = "r793b44f9cf264d3a93b3930ac75eade1"
+value = "{room}"
+
+[[answers]]
+question_id = "r3577a1357f1b43e2b02b74973dbfbe63"
+value = "{summary}"
+
+[[answers]]
+question_id = "r6972b2ac54ea43fea3fe6c89255f87b9"
+value = "{coordinator}"
+
+[[answers]]
+question_id = "r6d42fd2724e64cd190b6b110be740938"
+value = "{coordinator_email}"
+
+[[answers]]
+question_id = "r07e4a0c342f3444e9eeff3fecd314583"
+value = "{coordinator_phone}"
+
+[[answers]]
+question_id = "r6512ce5ea37c49ffa1425060ebb23211"
+value = "{attendance}"
+
+[[answers]]
+question_id = "r87723a977e4a4ca9ab114711494c1a3b"
+value = "{form_under_18}"
+
+[[answers]]
+question_id = "r09e9f3aa7d8540e9ad7b11c2c472a406"
+value = "{form_non_uq}"
+
+[[answers]]
+question_id = "r929e37d288c745d78a0b5710dc5048e1"
+value = "{form_venue_capacity}"
+
+[[answers]]
+question_id = "rcdf4b49320c24f5b8e85f2c39a0607de"
+value = ""
+
+[[answers]]
+question_id = "rc61c6cb486be4c04b01646d13af7daae"
+value = ""
+
+[[answers]]
+question_id = "r54cf90e47a4742f8bdbb249465d01c42"
+value = ""
+
+[[answers]]
+question_id = "r02167ee393484091bf983594ada4f904"
+value = "{form_option_28}"
+
+[[answers]]
+question_id = "r8c601fac8a5349dcb71efd9e3727d0df"
+value = "{form_food}"
+
+[[answers]]
+question_id = "r47e6efcb60a1405496d8cbb8b9aec999"
+value = "{form_option_30}"
+
+[[answers]]
+question_id = "reb9d70d3e26442eb9af870ed3f9a38d0"
+value = "{form_option_31}"
+
+[[answers]]
+question_id = "rb5c1527c55b34660a9a61e8cb5434716"
+value = "{form_option_32}"
+
+[[answers]]
+question_id = "r20818f8538744ed8a076aa698cbc9239"
+value = "{form_terms}"
+
+[[answers]]
+question_id = "r9aacdf07977646dd9159889d6d84037e"
+value = ""
