@@ -34,7 +34,7 @@ export function Eventy() {
   return (
     <main id="main" className="mini-page eventy-page" tabIndex={-1}>
       <section className="mini-mast mini-mast-eventy" aria-labelledby="eventy-title">
-        <World compact />
+        <World compact scene="eventy" />
         <div className="mast-mark">
           <DockMark kind="eventy" />
         </div>

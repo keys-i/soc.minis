@@ -11,6 +11,28 @@ const Lost = lazy(() => import("./lost").then((module) => ({ default: module.Los
 export { miniHref, pageFromPath } from "./route";
 export type { Mini } from "./minis";
 
+type Theme = "system" | "light" | "dark";
+
+function savedTheme(): Theme {
+  try {
+    const theme = localStorage.getItem("soc.theme");
+    if (theme === "light" || theme === "dark") return theme;
+  } catch {
+    // Browser storage is optional
+  }
+  return "system";
+}
+
+function applyTheme(theme: Theme) {
+  if (theme === "system") delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = theme;
+  try {
+    localStorage.setItem("soc.theme", theme);
+  } catch {
+    // Browser storage is optional
+  }
+}
+
 export function App() {
   const [route, setRoute] = useState(() => location.pathname + location.search),
     page = pageFromPath(new URL(route, location.origin).pathname),
@@ -18,7 +40,8 @@ export function App() {
 
   useEffect(() => {
     document.title = pageTitle(page);
-    if (mounted.current) document.querySelector<HTMLElement>("#main")?.focus({ preventScroll: true });
+    if (mounted.current)
+      document.querySelector<HTMLElement>("#main")?.focus({ preventScroll: true });
     else mounted.current = true;
   }, [page]);
 
@@ -30,7 +53,16 @@ export function App() {
 
   const navigate = (event: MouseEvent<HTMLDivElement>) => {
     const link = (event.target as HTMLElement).closest<HTMLAnchorElement>("a[href]");
-    if (!link || event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || link.target || link.download)
+    if (
+      !link ||
+      event.button ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey ||
+      link.target ||
+      link.download
+    )
       return;
     const destination = new URL(link.href, location.href);
     if (destination.origin !== location.origin || !ownsPath(destination.pathname)) return;
@@ -41,25 +73,48 @@ export function App() {
       scrollTo({ top: 0 });
     };
     const transition = (document as TransitionDocument).startViewTransition;
-    const reduceMotion = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (transition && !reduceMotion)
-      transition.call(document, commit);
+    const reduceMotion =
+      typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (transition && !reduceMotion) transition.call(document, commit);
     else commit();
   };
 
   return (
     <div className={`site-shell page-${page}`} onClick={navigate}>
-      <a className="skip-link" href="#main">Skip to content</a>
+      <a className="skip-link" href="#main">
+        Skip to content
+      </a>
       <header className="site-head">
-        <a className="brand" href={homeHref} aria-label="SOC Minis home" aria-current={page === "home" ? "page" : undefined}>
-          <span className="brand-mark"><Mark /></span>
+        <a
+          className="brand"
+          href={homeHref}
+          aria-label="SOC Minis home"
+          aria-current={page === "home" ? "page" : undefined}
+        >
+          <span className="brand-mark">
+            <Mark />
+          </span>
           <span>SOC Minis</span>
         </a>
-        {page === "home" ? (
-          <span className="head-note">Tools for society teams</span>
-        ) : (
-          <a className="all-minis" href={homeHref}>All minis</a>
-        )}
+        <div className="head-actions">
+          {page === "home" ? (
+            <span className="head-note">Tools for society teams</span>
+          ) : (
+            <a className="all-minis" href={homeHref}>
+              All minis
+            </a>
+          )}
+          <select
+            className="theme-select"
+            aria-label="Appearance"
+            defaultValue={savedTheme()}
+            onChange={(event) => applyTheme(event.currentTarget.value as Theme)}
+          >
+            <option value="system">System</option>
+            <option value="light">Day</option>
+            <option value="dark">Night</option>
+          </select>
+        </div>
       </header>
 
       <Suspense

@@ -7,7 +7,7 @@ export function Preview({ mini }: { mini: "monkey" | "meddy" }) {
   return (
     <main id="main" className={`mini-page preview-page preview-${mini}`} tabIndex={-1}>
       <section className={`mini-mast mini-mast-${mini}`} aria-labelledby={`${mini}-title`}>
-        <World compact />
+        <World compact scene={mini} />
         <div className="mast-mark">
           <DockMark kind={mini} />
         </div>

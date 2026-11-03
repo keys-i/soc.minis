@@ -1,11 +1,18 @@
 export type Mini = "eventy" | "monkey" | "meddy";
 
+export type Camera = {
+  x: number;
+  y: number;
+  scale: number;
+};
+
 type MiniBase = {
   id: Mini;
   title: string;
   status: string;
   summary: string;
   intro: string;
+  camera: Camera;
 };
 
 type ReadyMini = MiniBase & { available: true };
@@ -27,6 +34,7 @@ export const minis = [
     status: "Ready now",
     summary: "Prepare the event and follow the booking",
     intro: "Prepare the event files, then keep the booking follow-up moving",
+    camera: { x: -18, y: 8, scale: 1.12 },
     available: true,
   },
   {
@@ -35,6 +43,7 @@ export const minis = [
     status: "Coming soon",
     summary: "Receipts, reimbursements and one traceable ledger",
     intro: "One accountable path from receipt to reconciled society ledger",
+    camera: { x: 0, y: -4, scale: 1.14 },
     available: false,
     flowTitle: "A clean paper trail",
     steps: ["Receipt arrives", "Executive checks it", "Reimbursement gets a number", "Ledger reconciles"],
@@ -47,6 +56,7 @@ export const minis = [
     status: "Coming soon",
     summary: "Plan one post for every society channel",
     intro: "Write once, then make the post fit each society channel",
+    camera: { x: 18, y: -12, scale: 1.16 },
     available: false,
     flowTitle: "One post, properly adapted",
     steps: ["Add the caption and media", "Review each channel", "Approve together", "Publish with a history"],
@@ -62,3 +72,5 @@ export const miniById = Object.fromEntries(minis.map((mini) => [mini.id, mini]))
 export function isMini(value: string): value is Mini {
   return value === "eventy" || value === "monkey" || value === "meddy";
 }
+
+export const homeCamera: Camera = { x: 0, y: 0, scale: 1 };

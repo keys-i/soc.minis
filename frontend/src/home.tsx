@@ -14,12 +14,16 @@ export function Home() {
             <br />
             Sort the admin.
           </h1>
-          <p>Pick a mini. Each one opens in its own space.</p>
+          <p>Choose a dock. Each mini opens where its work happens.</p>
         </div>
 
         <nav className="mini-landmarks" aria-label="SOC Minis">
           {minis.map((mini) => (
-            <a className={`mini-landmark landmark-${mini.id}`} href={miniHref(mini.id)} key={mini.id}>
+            <a
+              className={`mini-landmark landmark-${mini.id}`}
+              href={miniHref(mini.id)}
+              key={mini.id}
+            >
               <span className="landmark-mark">
                 <DockMark kind={mini.id} />
               </span>

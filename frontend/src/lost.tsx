@@ -5,7 +5,7 @@ export function Lost() {
   return (
     <main id="main" className="lost-page" tabIndex={-1}>
       <section className="lost-island" aria-labelledby="lost-title">
-        <World compact />
+        <World compact scene="home" />
         <div className="lost-copy">
           <span aria-hidden="true">404</span>
           <h1 id="lost-title">That island isn't on the chart</h1>

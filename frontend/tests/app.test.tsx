@@ -9,14 +9,27 @@ Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true, scrollTo: vi.fn() })
 
 vi.mock("../src/api", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../src/api")>()),
-  status: vi.fn().mockResolvedValue({ workspace: "0123456789abcdef01234567", microsoft_mailbox: null, microsoft_ready: false, forms_ready: false }),
+  status: vi
+    .fn()
+    .mockResolvedValue({
+      workspace: "0123456789abcdef01234567",
+      microsoft_mailbox: null,
+      microsoft_ready: false,
+      forms_ready: false,
+    }),
   bookings: vi.fn().mockResolvedValue([]),
 }));
 
 afterEach(() => {
   history.replaceState(null, "", "/soc/");
   localStorage.clear();
-  vi.mocked(status).mockResolvedValue({ workspace: "0123456789abcdef01234567", microsoft_mailbox: null, microsoft_ready: false, forms_ready: false });
+  delete document.documentElement.dataset.theme;
+  vi.mocked(status).mockResolvedValue({
+    workspace: "0123456789abcdef01234567",
+    microsoft_mailbox: null,
+    microsoft_ready: false,
+    forms_ready: false,
+  });
 });
 
 describe("mini routes", () => {
@@ -31,7 +44,11 @@ describe("mini routes", () => {
       expect.stringContaining("Monkey"),
       expect.stringContaining("Meddy"),
     ]);
-    expect(links.map((link) => link.getAttribute("href"))).toEqual(["/soc/eventy", "/soc/monkey", "/soc/meddy"]);
+    expect(links.map((link) => link.getAttribute("href"))).toEqual([
+      "/soc/eventy",
+      "/soc/monkey",
+      "/soc/meddy",
+    ]);
     expect(host.querySelector(".eventy-workspace")).toBeNull();
   });
 
@@ -67,6 +84,25 @@ describe("mini routes", () => {
     host.remove();
   });
 
+  test("persists an explicit day or night appearance", async () => {
+    history.replaceState(null, "", "/soc/");
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    await act(async () => root.render(<App />));
+
+    const appearance = host.querySelector<HTMLSelectElement>('[aria-label="Appearance"]')!;
+    await act(async () => {
+      appearance.value = "dark";
+      appearance.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(localStorage.getItem("soc.theme")).toBe("dark");
+
+    await act(async () => root.unmount());
+    host.remove();
+  });
+
   test("switches the Eventy workspace and preserves its direct URL", async () => {
     history.replaceState(null, "", "/soc/eventy");
     const host = document.createElement("div");
@@ -79,7 +115,9 @@ describe("mini routes", () => {
     expect(tabs).toHaveLength(2);
     await act(async () => tabs[1].click());
     expect(tabs[1].getAttribute("aria-pressed")).toBe("true");
-    expect(host.querySelector(".eventy-workspace")?.getAttribute("aria-label")).toBe("Booking follow-up");
+    expect(host.querySelector(".eventy-workspace")?.getAttribute("aria-label")).toBe(
+      "Booking follow-up",
+    );
     expect(host.textContent).toContain("Booking mailbox");
     expect(location.pathname + location.search).toBe("/soc/eventy?view=follow");
 
@@ -89,7 +127,11 @@ describe("mini routes", () => {
 
   test("waits for the hosted workspace before opening a draft", async () => {
     let open!: (account: Awaited<ReturnType<typeof status>>) => void;
-    vi.mocked(status).mockReturnValueOnce(new Promise((resolve) => { open = resolve; }));
+    vi.mocked(status).mockReturnValueOnce(
+      new Promise((resolve) => {
+        open = resolve;
+      }),
+    );
     history.replaceState(null, "", "/soc/eventy");
     const host = document.createElement("div");
     document.body.append(host);
@@ -97,11 +139,20 @@ describe("mini routes", () => {
     await act(async () => root.render(<App />));
     await vi.waitFor(() => expect(host.querySelector(".workspace-loading")).not.toBeNull());
 
-    expect(host.querySelector(".workspace-loading")?.textContent).toContain("Opening your private workspace");
+    expect(host.querySelector(".workspace-loading")?.textContent).toContain(
+      "Opening your private workspace",
+    );
     expect(host.querySelector('[name="club"]')).toBeNull();
     expect(localStorage.getItem("soc-minis:workspace:v1")).toBeNull();
 
-    await act(async () => open({ workspace: "fedcba9876543210fedcba98", microsoft_mailbox: null, microsoft_ready: false, forms_ready: false }));
+    await act(async () =>
+      open({
+        workspace: "fedcba9876543210fedcba98",
+        microsoft_mailbox: null,
+        microsoft_ready: false,
+        forms_ready: false,
+      }),
+    );
     await vi.waitFor(() => expect(host.querySelector('[name="club"]')).not.toBeNull());
     expect(localStorage.getItem("soc-minis:workspace:v1")).toBeNull();
 
@@ -124,14 +175,19 @@ describe("mini routes", () => {
 
     expect(host.querySelector(".lost-page")).not.toBeNull();
     expect(host.textContent).toContain("That island isn't on the chart");
-    expect(host.querySelector<HTMLAnchorElement>(".lost-copy a")?.getAttribute("href")).toBe("/soc/");
+    expect(host.querySelector<HTMLAnchorElement>(".lost-copy a")?.getAttribute("href")).toBe(
+      "/soc/",
+    );
     await act(async () => root.unmount());
     host.remove();
   });
 
   test("restores the semantic draft and output choices", async () => {
     localStorage.setItem("soc-minis-event-v1", JSON.stringify({ club: "UQ Robotics" }));
-    localStorage.setItem("soc-minis-event-options-v1", JSON.stringify({ mode: "risk", layout: "pack" }));
+    localStorage.setItem(
+      "soc-minis-event-options-v1",
+      JSON.stringify({ mode: "risk", layout: "pack" }),
+    );
     history.replaceState(null, "", "/soc/eventy");
     const host = document.createElement("div");
     document.body.append(host);
@@ -145,7 +201,9 @@ describe("mini routes", () => {
     const prepare = [...host.querySelectorAll<HTMLButtonElement>(".steps button")].at(-1)!;
     await act(async () => prepare.click());
     expect(host.querySelector<HTMLInputElement>('[name="mode"][value="risk"]')?.checked).toBe(true);
-    expect(host.querySelector<HTMLInputElement>('[name="layout"][value="pack"]')?.checked).toBe(true);
+    expect(host.querySelector<HTMLInputElement>('[name="layout"][value="pack"]')?.checked).toBe(
+      true,
+    );
 
     await act(async () => root.unmount());
     host.remove();

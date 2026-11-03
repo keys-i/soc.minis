@@ -21,6 +21,16 @@ describe("archipelago lifecycle", () => {
     );
   });
 
+  test("reads each destination camera from the mini manifest", () => {
+    const host = document.createElement("div");
+    host.innerHTML = renderToStaticMarkup(<World compact scene="eventy" />);
+    const world = host.querySelector<HTMLElement>(".world")!;
+    expect(world.dataset.scene).toBe("eventy");
+    expect(world.style.getPropertyValue("--camera-x")).toBe("-18px");
+    expect(world.style.getPropertyValue("--camera-y")).toBe("8px");
+    expect(world.style.getPropertyValue("--camera-scale")).toBe("1.12");
+  });
+
   test("pauses the animation loop while hidden or reduced motion is active", async () => {
     let hidden = false;
     const queries = new Map<string, FakeMedia>(),
@@ -39,7 +49,7 @@ describe("archipelago lifecycle", () => {
       root = createRoot(host);
     document.body.append(host);
     await act(async () => root.render(<section><World /></section>));
-    expect(request).toHaveBeenCalledOnce();
+    await vi.waitFor(() => expect(request).toHaveBeenCalledOnce());
 
     hidden = true;
     document.dispatchEvent(new Event("visibilitychange"));
@@ -76,7 +86,7 @@ describe("archipelago lifecycle", () => {
       root = createRoot(host);
     document.body.append(host);
     await act(async () => root.render(<section><World /></section>));
-    expect(request).toHaveBeenCalledOnce();
+    await vi.waitFor(() => expect(request).toHaveBeenCalledOnce());
 
     observe([{ isIntersecting: false }]);
     expect(cancel).toHaveBeenCalledWith(11);
@@ -111,7 +121,9 @@ describe("archipelago lifecycle", () => {
     document.body.append(host);
     await act(async () => root.render(<section><World /></section>));
     expect(request).not.toHaveBeenCalled();
-    expect(host.querySelector<HTMLElement>(".world")?.dataset.depth).toBe("still");
+    await vi.waitFor(() =>
+      expect(host.querySelector<HTMLElement>(".world")?.dataset.depth).toBe("still"),
+    );
 
     queries.get("(prefers-reduced-data: reduce)")!.matches = false;
     queries.get("(prefers-reduced-data: reduce)")!.change();
@@ -136,7 +148,9 @@ describe("archipelago lifecycle", () => {
     document.body.append(host);
     await act(async () => root.render(<section><World /></section>));
 
-    expect(host.querySelector<HTMLElement>(".world")?.dataset.depth).toBe("scroll");
+    await vi.waitFor(() =>
+      expect(host.querySelector<HTMLElement>(".world")?.dataset.depth).toBe("scroll"),
+    );
     expect(request).not.toHaveBeenCalled();
 
     await act(async () => root.unmount());
