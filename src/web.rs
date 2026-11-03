@@ -211,7 +211,7 @@ pub async fn serve(config: Config) -> Result<()> {
         cache: ArtifactCache::new(config.data.join("cache"), CACHE_BUDGET)?,
         profile: FormProfile::bundled()?,
         rooms: Arc::new(rooms::read(None)?),
-        data: config.data,
+        data: config.data.clone(),
         downloads: Arc::new(Mutex::new(HashMap::new())),
         local: address.ip().is_loopback(),
         origin_secret: env::var("SOC_ORIGIN_SECRET").ok(),
@@ -231,34 +231,7 @@ pub async fn serve(config: Config) -> Result<()> {
             }
         }
     });
-    let files = ServeDir::new(&config.frontend)
-        .append_index_html_on_directories(true)
-        .fallback(ServeFile::new(config.frontend.join("index.html")));
-    let scoped = Router::new()
-        .route("/api/health", get(health))
-        .route("/api/status", get(account_status))
-        .route("/api/rooms", get(search_rooms))
-        .route("/api/event", post(prepare_event))
-        .route("/api/download/{id}", get(download))
-        .route("/api/microsoft/start", post(start_login))
-        .route("/api/microsoft/poll/{id}", post(poll_login))
-        .route("/api/agent/status", get(agent_status))
-        .route("/api/agent/watch", post(watch_event))
-        .route("/api/agent/poll", post(poll_agent))
-        .route("/api/agent/stop", post(stop_event))
-        .route("/api/agent/retry", post(retry_send))
-        .fallback_service(files)
-        .with_state(state)
-        .layer(DefaultBodyLimit::max(256 * 1024))
-        .layer(CompressionLayer::new())
-        .layer(TraceLayer::new_for_http());
-    let router = if base == "/" {
-        scoped
-    } else {
-        Router::new()
-            .route("/health", get(health))
-            .nest(&base, scoped)
-    };
+    let router = router(&config, &base, state);
     let listener = TcpListener::bind(address)
         .await
         .map_err(|error| SocError::Io {
@@ -276,6 +249,41 @@ pub async fn serve(config: Config) -> Result<()> {
     poller.abort();
     let _ = poller.await;
     result
+}
+
+fn router(config: &Config, base: &str, state: App) -> Router {
+    let index = config.frontend.join("index.html");
+    let files = ServeDir::new(&config.frontend)
+        .append_index_html_on_directories(true)
+        .fallback(ServeFile::new(&index));
+    let scoped = Router::new()
+        .route_service("/", ServeFile::new(index))
+        .route("/api/health", get(health))
+        .route("/api/status", get(account_status))
+        .route("/api/rooms", get(search_rooms))
+        .route("/api/event", post(prepare_event))
+        .route("/api/download/{id}", get(download))
+        .route("/api/microsoft/start", post(start_login))
+        .route("/api/microsoft/poll/{id}", post(poll_login))
+        .route("/api/agent/status", get(agent_status))
+        .route("/api/agent/watch", post(watch_event))
+        .route("/api/agent/poll", post(poll_agent))
+        .route("/api/agent/stop", post(stop_event))
+        .route("/api/agent/retry", post(retry_send))
+        .fallback_service(files)
+        .with_state(state)
+        .layer(DefaultBodyLimit::max(256 * 1024))
+        .layer(CompressionLayer::new())
+        .layer(TraceLayer::new_for_http());
+    if base == "/" {
+        scoped
+    } else {
+        let shell = format!("{base}/");
+        Router::new()
+            .route("/health", get(health))
+            .route_service(base, ServeFile::new(config.frontend.join("index.html")))
+            .nest(&shell, scoped)
+    }
 }
 
 async fn shutdown() {
@@ -660,6 +668,9 @@ fn constant_time(expected: &[u8], supplied: &[u8]) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use axum::{body::Body, http::Request};
+    use tower::ServiceExt;
+
     use super::*;
 
     #[test]
@@ -670,5 +681,55 @@ mod tests {
         assert_eq!(owner_key("member@example.org").len(), 24);
         assert!(constant_time(b"secret", b"secret"));
         assert!(!constant_time(b"secret", b"other!"));
+    }
+
+    #[tokio::test]
+    async fn serves_the_scoped_shell_assets_and_health() {
+        let root = std::env::temp_dir().join(format!("soc-web-{}", Uuid::new_v4()));
+        let frontend = root.join("frontend");
+        fs::create_dir_all(frontend.join("assets")).expect("frontend directories");
+        fs::write(
+            frontend.join("index.html"),
+            "<!doctype html><title>SOC</title>",
+        )
+        .expect("frontend shell");
+        fs::write(frontend.join("assets/app.js"), "export {}").expect("frontend asset");
+        let data = root.join("data");
+        let state = App {
+            store: Store::open(&data).expect("store"),
+            cache: ArtifactCache::new(data.join("cache"), CACHE_BUDGET).expect("cache"),
+            profile: FormProfile::bundled().expect("profile"),
+            rooms: Arc::new(rooms::read(None).expect("rooms")),
+            data: data.clone(),
+            downloads: Arc::new(Mutex::new(HashMap::new())),
+            local: true,
+            origin_secret: None,
+            dev_user: None,
+            microsoft_client_id: None,
+            microsoft_tenant_id: None,
+        };
+        let config = Config {
+            bind: "127.0.0.1:0".into(),
+            base: "/soc".into(),
+            data,
+            frontend,
+            poll_interval: Duration::from_secs(60),
+        };
+        let app = router(&config, "/soc", state);
+        for path in [
+            "/soc",
+            "/soc/",
+            "/soc/assets/app.js",
+            "/soc/api/health",
+            "/health",
+        ] {
+            let response = app
+                .clone()
+                .oneshot(Request::get(path).body(Body::empty()).expect("request"))
+                .await
+                .expect("response");
+            assert_eq!(response.status(), StatusCode::OK, "{path}");
+        }
+        fs::remove_dir_all(root).expect("clean state");
     }
 }

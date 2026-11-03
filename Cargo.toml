@@ -37,6 +37,9 @@ url = "2.5.8"
 uuid = { version = "1.26.0", features = ["v4"] }
 zip = { version = "2.4.2", default-features = false, features = ["deflate"] }
 
+[dev-dependencies]
+tower = { version = "0.5.3", features = ["util"] }
+
 [profile.release]
 codegen-units = 1
 lto = "thin"
