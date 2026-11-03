@@ -32,6 +32,7 @@ export function App() {
 
   return (
     <div className="site-shell">
+      <a className="skip-link" href="#eventy-workspace">Skip to Eventy</a>
       <header className="site-head">
         <a className="brand" href={import.meta.env.BASE_URL} aria-label="SOC Minis home">
           <span className="brand-mark">
@@ -39,34 +40,87 @@ export function App() {
           </span>
           <span>SOC Minis</span>
         </a>
-        <nav aria-label="SOC Minis tools">
-          <button
-            type="button"
-            aria-current={screen === "prepare" ? "page" : undefined}
-            onClick={() => setScreen("prepare")}
-          >
-            Prepare event
-          </button>
-          <button
-            type="button"
-            aria-current={screen === "follow" ? "page" : undefined}
-            onClick={() => setScreen("follow")}
-          >
-            Booking follow-up
-          </button>
-        </nav>
+        <span className="head-note">Made for society teams</span>
       </header>
 
       <main>
         <section className="hero" aria-labelledby="hero-title">
           <Habitat />
-          <div className="hero-copy">
-            <h1 id="hero-title">From first flight to safe return</h1>
-            <p>Prepare the event, then let booking follow-up run quietly in the background</p>
+          <div className="hero-layout">
+            <div className="hero-copy">
+              <p className="eyebrow">Club operations, brought ashore</p>
+              <h1 id="hero-title">Run the club. Keep the chaos out.</h1>
+              <p>Eventy is ready today. Monkey and Meddy are being shaped around the work that still lives in receipts, spreadsheets and too many logins.</p>
+            </div>
+
+            <section className="product-shelf" aria-label="SOC Minis products">
+              <article className="product eventy-product">
+                <div className="product-head">
+                  <span className="product-icon eventy-icon" aria-hidden="true"><Mark /></span>
+                  <span className="product-state available">Available now</span>
+                </div>
+                <h2>Eventy</h2>
+                <p className="product-pitch">Events, without the admin fog</p>
+                <p>Plan the gathering, prepare editable risk files and quietly follow the booking</p>
+                <nav className="product-actions" aria-label="Eventy views">
+                  <a
+                    href="#eventy-workspace"
+                    aria-current={screen === "prepare" ? "page" : undefined}
+                    onClick={() => setScreen("prepare")}
+                  >
+                    Plan an event
+                  </a>
+                  <a
+                    href="#eventy-workspace"
+                    aria-current={screen === "follow" ? "page" : undefined}
+                    onClick={() => setScreen("follow")}
+                  >
+                    Follow a booking
+                  </a>
+                </nav>
+              </article>
+
+              <article className="product preview-product monkey-product" aria-disabled="true">
+                <div className="product-head">
+                  <span className="product-icon" aria-hidden="true">▦</span>
+                  <span className="product-state">Coming soon</span>
+                </div>
+                <h2>Monkey</h2>
+                <p className="product-pitch">Money you can trace</p>
+                <p>Receipts in, executive approval clear and every reimbursement numbered</p>
+                <ul>
+                  <li>Receipt intake from WhatsApp, Instagram and Messenger, with executive verification</li>
+                  <li>Reimbursements, numbered references, AFR and union exports, budgets and ticket modelling</li>
+                  <li>Read-only bank matching, spending insights, unusual-transaction review and tamper-evident role history</li>
+                </ul>
+              </article>
+
+              <article className="product preview-product meddy-product" aria-disabled="true">
+                <div className="product-head">
+                  <span className="product-icon" aria-hidden="true">↗</span>
+                  <span className="product-state">Coming soon</span>
+                </div>
+                <h2>Meddy</h2>
+                <p className="product-pitch">One post, properly adapted</p>
+                <p>Compose captions and media once, adapt each destination, then publish to Instagram, LinkedIn and Discord</p>
+                <p className="product-detail">Team approvals · channel previews · publish history</p>
+              </article>
+            </section>
           </div>
         </section>
 
-        <section className="workbench" aria-label={screen === "prepare" ? "Prepare event" : "Booking follow-up"}>
+        <p className="preview-note">Monkey and Meddy are product previews. No bank, messaging or social account is connected yet.</p>
+
+        <section
+          className="workbench"
+          id="eventy-workspace"
+          tabIndex={-1}
+          aria-label={screen === "prepare" ? "Prepare event" : "Booking follow-up"}
+        >
+          <div className="workbench-head">
+            <span>Eventy</span>
+            <strong>{screen === "prepare" ? "Plan an event" : "Follow a booking"}</strong>
+          </div>
           {accountError && (
             <div className="notice error" role="alert">
               <strong>Connection needs attention</strong>
@@ -88,7 +142,7 @@ export function App() {
           )}
         </section>
       </main>
-      <footer>SOC Minis keeps event files and mailbox authority in your private workspace</footer>
+      <footer>Event files and mailbox authority stay in your private workspace</footer>
     </div>
   );
 }
