@@ -23,7 +23,7 @@ else
   CARGO="\${HOME}/.cargo/bin/cargo"
 fi
 
-"\${CARGO}" install --locked --force --git https://github.com/keys-i/soc.minis.git --rev f0f76539bdde9b2052bf311692bf77b03eb4e631 soc-minis
+"\${CARGO}" install --locked --force --git https://github.com/keys-i/soc.minis.git --rev d36beaee9c1b37c5ef737021da153f0097f26138 soc-minis
 echo "Installed SOC Minis. Run: soc --help"
 `;
 

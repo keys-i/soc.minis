@@ -79,7 +79,9 @@ test("the SOC Worker keeps native operations explicit and publishes its installe
   });
   expect(install.status).toBe(200);
   expect(install.headers.get("Content-Type")).toContain("text/x-shellscript");
-  await expect(install.text()).resolves.toContain('"${CARGO}" install --locked --force');
+  await expect(install.text()).resolves.toContain(
+    "--rev d36beaee9c1b37c5ef737021da153f0097f26138",
+  );
 
   const redirect = await worker.fetch(new Request("https://uni.keysi.dev/soc"), {
     ASSETS: binding,
