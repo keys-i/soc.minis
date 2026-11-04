@@ -1,0 +1,16 @@
+{
+  "name": "keysi-soc-minis",
+  "main": "edge.ts",
+  "account_id": "c713c05bacbb3d526a4f5bc6589f06d6",
+  "compatibility_date": "2026-10-20",
+  "workers_dev": false,
+  "assets": {
+    "directory": "../frontend/dist",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "routes": [
+    { "pattern": "uni.keysi.dev/soc", "zone_name": "keysi.dev" },
+    { "pattern": "uni.keysi.dev/soc/*", "zone_name": "keysi.dev" }
+  ]
+}
