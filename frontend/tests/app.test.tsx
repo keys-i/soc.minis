@@ -51,9 +51,16 @@ describe("mini routes", () => {
       "/soc/meddy",
     ]);
     expect(host.querySelector('.tectonic-footer [href="https://keysi.dev"]')).not.toBeNull();
-    expect(
-      host.querySelector('.tectonic-footer [href="https://linkedin.com/in/radhesh-g"]'),
-    ).not.toBeNull();
+    const github = host.querySelector<HTMLAnchorElement>(
+        '.tectonic-footer [href="https://github.com/keys-i"]',
+      ),
+      linkedin = host.querySelector<HTMLAnchorElement>(
+        '.tectonic-footer [href="https://linkedin.com/in/radhesh-g"]',
+      );
+    expect(github?.getAttribute("aria-label")).toBe("GitHub");
+    expect(linkedin?.getAttribute("aria-label")).toBe("LinkedIn");
+    expect(github?.textContent).toBe("");
+    expect(linkedin?.textContent).toBe("");
     expect(host.querySelector(".eventy-workspace")).toBeNull();
   });
 

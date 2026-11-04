@@ -4,5 +4,6 @@
 /frontend/node_modules/
 /.config/
 /out/
+.taste-skill/
 .env
 

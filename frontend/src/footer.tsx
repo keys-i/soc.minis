@@ -10,12 +10,22 @@ export function Footer() {
         keysi.dev
       </a>
       <nav aria-label="Footer">
-        <a href="https://github.com/keys-i" target="_blank" rel="noopener noreferrer">
-          GitHub
-        </a>
-        <a href="https://linkedin.com/in/radhesh-g" target="_blank" rel="noopener noreferrer">
-          LinkedIn
-        </a>
+        <a
+          className="footer-symbol footer-github"
+          href="https://github.com/keys-i"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="GitHub"
+          title="GitHub"
+        />
+        <a
+          className="footer-symbol footer-linkedin"
+          href="https://linkedin.com/in/radhesh-g"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="LinkedIn"
+          title="LinkedIn"
+        />
       </nav>
     </footer>
   );

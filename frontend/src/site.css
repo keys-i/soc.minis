@@ -982,8 +982,8 @@ select:focus {
   gap: 24px;
   padding: 34px clamp(22px, 5vw, 72px);
   overflow: hidden;
-  color: #f5fbfa;
-  background: var(--deep);
+  color: var(--ink);
+  background: transparent;
 }
 
 .tectonic-field,
@@ -993,52 +993,45 @@ select:focus {
 }
 
 .tectonic-field {
-  inset: -28px;
-  z-index: -1;
+  inset: 0;
+  z-index: 0;
   overflow: hidden;
 }
 
 .tectonic-plate {
-  filter: blur(8px);
-  opacity: 0.8;
+  opacity: 1;
+  filter: none;
+  background: rgb(245 251 250 / 0.06);
   transform: translate3d(0, 0, 0);
-}
-
-.tectonic-plate::before {
-  position: absolute;
-  inset: 0;
-  content: "";
+  -webkit-backdrop-filter: blur(13px) saturate(0.82);
+  backdrop-filter: blur(13px) saturate(0.82);
 }
 
 .plate-west {
   inset: -8% 48% 4% -8%;
-}
-
-.plate-west::before {
   clip-path: polygon(0 4%, 82% 0, 100% 28%, 78% 62%, 88% 100%, 0 91%);
-  background: #12677a;
+  -webkit-backdrop-filter: blur(18px) saturate(0.76);
+  backdrop-filter: blur(18px) saturate(0.76);
 }
 
 .plate-east {
   inset: 4% -8% -12% 45%;
-}
-
-.plate-east::before {
   clip-path: polygon(18% 0, 100% 9%, 100% 100%, 5% 92%, 0 55%, 28% 31%);
-  background: #69aeb5;
+  -webkit-backdrop-filter: blur(11px) saturate(0.88);
+  backdrop-filter: blur(11px) saturate(0.88);
 }
 
 .plate-ridge {
   inset: 52% 25% -18% 18%;
-  opacity: 0.52;
-}
-
-.plate-ridge::before {
   clip-path: polygon(2% 30%, 35% 0, 62% 19%, 100% 9%, 92% 100%, 8% 86%);
-  background: var(--coral);
+  background: rgb(245 251 250 / 0.1);
+  -webkit-backdrop-filter: blur(24px) saturate(0.7);
+  backdrop-filter: blur(24px) saturate(0.7);
 }
 
 .footer-wordmark {
+  position: relative;
+  z-index: 1;
   color: inherit;
   font-size: clamp(1.7rem, 4vw, 3.25rem);
   font-weight: 900;
@@ -1048,32 +1041,51 @@ select:focus {
 }
 
 .tectonic-footer nav {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .tectonic-footer nav a {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  padding: 9px 16px;
-  border-radius: 999px;
+  display: grid;
+  width: 48px;
+  height: 48px;
+  min-height: 48px;
+  place-items: center;
+  padding: 0;
+  border-radius: 12px;
   color: inherit;
-  background: #f5fbfa1f;
-  font-weight: 800;
+  background: transparent;
   text-decoration: none;
   transition:
     color 180ms ease,
-    background-color 180ms ease,
     transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tectonic-footer nav a::before {
+  width: 27px;
+  height: 27px;
+  background: currentColor;
+  content: "";
+  -webkit-mask: var(--footer-icon) center / contain no-repeat;
+  mask: var(--footer-icon) center / contain no-repeat;
+}
+
+.footer-github {
+  --footer-icon: url("/soc/icons/github.svg");
+}
+
+.footer-linkedin {
+  --footer-icon: url("/soc/icons/linkedin.svg");
 }
 
 @media (hover: hover) and (pointer: fine) {
   .tectonic-footer nav a:hover {
-    color: var(--deep);
-    background: var(--cloud);
-    transform: translateY(-3px) rotate(-1deg);
+    color: var(--coral);
+    background: transparent;
+    transform: translateY(-4px) rotate(-2deg) scale(1.08);
   }
 
   .tectonic-footer:hover .plate-west,
@@ -1121,9 +1133,10 @@ select:focus {
   }
 
   .tectonic-footer nav {
-    width: 100%;
+    width: auto;
     flex-wrap: wrap;
   }
+
 }
 
 @keyframes wing {
@@ -1658,6 +1671,13 @@ select:-webkit-autofill {
   background: var(--sky);
 }
 
+.page-home .tectonic-footer {
+  z-index: 6;
+  margin-top: -164px;
+  color: #f5fbfa;
+  text-shadow: 0 2px 12px #062833e6;
+}
+
 .world,
 .world > span {
   position: absolute;
@@ -1801,6 +1821,10 @@ select:-webkit-autofill {
   grid-template-columns: repeat(12, minmax(0, 1fr));
   grid-template-rows: repeat(5, 1fr);
   gap: 12px;
+}
+
+.page-home .mini-landmarks {
+  bottom: calc(5% + 164px);
 }
 
 .mini-landmark {
@@ -2407,7 +2431,11 @@ select:-webkit-autofill {
   }
 
   .society-station {
-    min-height: 820px;
+    min-height: 980px;
+  }
+
+  .page-home .tectonic-footer {
+    margin-top: -214px;
   }
 
   .society-station::after {
@@ -2425,7 +2453,7 @@ select:-webkit-autofill {
   }
 
   .mini-landmarks {
-    inset: 38% 14px 5%;
+    inset: 38% 14px calc(5% + 214px);
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
