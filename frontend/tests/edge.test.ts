@@ -27,15 +27,14 @@ test("the SOC Worker serves scoped assets and deep links without an origin serve
   await expect(deepLink.text()).resolves.toBe("<main>SOC Minis</main>");
   expect(deepLink.headers.get("X-Frame-Options")).toBe("DENY");
   expect(deepLink.headers.get("Cache-Control")).toBe("no-cache");
-  expect(new URL(binding.fetch.mock.calls[0][0].url).pathname).toBe("/eventy");
-  expect(new URL(binding.fetch.mock.calls[1][0].url).pathname).toBe("/index.html");
+  expect(new URL(binding.fetch.mock.calls[0][0].url).pathname).toBe("/index.html");
 
   const asset = await worker.fetch(new Request("https://uni.keysi.dev/soc/assets/app.js"), {
     ASSETS: binding,
   });
   expect(asset.status).toBe(200);
   expect(asset.headers.get("Cache-Control")).toBe("public, max-age=31536000");
-  expect(new URL(binding.fetch.mock.calls[2][0].url).pathname).toBe("/assets/app.js");
+  expect(new URL(binding.fetch.mock.calls[1][0].url).pathname).toBe("/assets/app.js");
 });
 
 test("the SOC Worker keeps native workspace failures explicit and private", async () => {
