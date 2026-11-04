@@ -50,6 +50,10 @@ describe("mini routes", () => {
       "/soc/monkey",
       "/soc/meddy",
     ]);
+    expect(host.querySelector('.tectonic-footer [href="https://keysi.dev"]')).not.toBeNull();
+    expect(
+      host.querySelector('.tectonic-footer [href="https://linkedin.com/in/radhesh-g"]'),
+    ).not.toBeNull();
     expect(host.querySelector(".eventy-workspace")).toBeNull();
   });
 

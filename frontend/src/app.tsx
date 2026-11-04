@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState, type MouseEvent } from "react";
 import { flushSync } from "react-dom";
+import { Footer } from "./footer";
 import { Home } from "./home";
 import { Mark } from "./habitat";
 import { homeHref, ownsPath, pageFromPath, pageTitle } from "./route";
@@ -189,7 +190,7 @@ export function App() {
         {page === "not-found" && <Lost />}
       </Suspense>
 
-      <footer>Event files and mailbox authority stay in your private workspace</footer>
+      <Footer />
     </div>
   );
 }
