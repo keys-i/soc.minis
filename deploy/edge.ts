@@ -31,7 +31,7 @@ function unavailable(): Response {
   return secured(
     Response.json(
       {
-        error: "SOC Minis is online, but Eventy's private workspace service isn't available yet",
+        error: "Eventy's workspace can't open right now. Try again shortly",
         status: "degraded",
       },
       { status: 503 },

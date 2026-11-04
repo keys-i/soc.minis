@@ -33,6 +33,74 @@ function applyTheme(theme: Theme) {
   }
 }
 
+function systemDark() {
+  return typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+function Appearance() {
+  const [theme, setTheme] = useState(savedTheme),
+    [dark, setDark] = useState(() => theme === "dark" || (theme === "system" && systemDark()));
+
+  useEffect(() => {
+    if (typeof matchMedia !== "function") {
+      applyTheme(theme);
+      setDark(theme === "dark");
+      return;
+    }
+    const media = matchMedia("(prefers-color-scheme: dark)"),
+      sync = () => setDark(theme === "system" ? media.matches : theme === "dark");
+    applyTheme(theme);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, [theme]);
+
+  return (
+    <div className="theme-picker" data-dark={dark}>
+      <button
+        type="button"
+        className="theme-toggle"
+        aria-label="Night mode"
+        aria-pressed={dark}
+        onClick={() => setTheme(dark ? "light" : "dark")}
+      >
+        <span className="theme-track" aria-hidden="true">
+          <span className="theme-knob">{dark ? "☾" : "☀"}</span>
+        </span>
+        <span>{dark ? "Night" : "Day"}</span>
+      </button>
+      <button
+        type="button"
+        className="theme-options"
+        aria-label="Theme options"
+        aria-haspopup="dialog"
+        popoverTarget="soc-theme-menu"
+      >
+        <span aria-hidden="true">⌄</span>
+      </button>
+      <section
+        id="soc-theme-menu"
+        popover="auto"
+        role="dialog"
+        aria-label="Theme options"
+        className="theme-menu"
+      >
+        <button
+          type="button"
+          className="quiet"
+          aria-pressed={theme === "system"}
+          popoverTarget="soc-theme-menu"
+          popoverTargetAction="hide"
+          onClick={() => setTheme("system")}
+        >
+          <span aria-hidden="true">{theme === "system" ? "✓" : ""}</span>
+          Sync to system
+        </button>
+      </section>
+    </div>
+  );
+}
+
 export function App() {
   const [route, setRoute] = useState(() => location.pathname + location.search),
     page = pageFromPath(new URL(route, location.origin).pathname),
@@ -97,23 +165,12 @@ export function App() {
           <span>SOC Minis</span>
         </a>
         <div className="head-actions">
-          {page === "home" ? (
-            <span className="head-note">Tools for society teams</span>
-          ) : (
+          {page !== "home" && (
             <a className="all-minis" href={homeHref}>
               All minis
             </a>
           )}
-          <select
-            className="theme-select"
-            aria-label="Appearance"
-            defaultValue={savedTheme()}
-            onChange={(event) => applyTheme(event.currentTarget.value as Theme)}
-          >
-            <option value="system">System</option>
-            <option value="light">Day</option>
-            <option value="dark">Night</option>
-          </select>
+          <Appearance />
         </div>
       </header>
 

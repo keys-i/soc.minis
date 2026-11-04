@@ -44,7 +44,10 @@ test("the SOC Worker keeps native workspace failures explicit and private", asyn
   });
   expect(response.status).toBe(503);
   expect(response.headers.get("Cache-Control")).toBe("no-store");
-  await expect(response.json()).resolves.toMatchObject({ status: "degraded" });
+  await expect(response.json()).resolves.toMatchObject({
+    error: "Eventy's workspace can't open right now. Try again shortly",
+    status: "degraded",
+  });
   expect(binding.fetch).not.toHaveBeenCalled();
 
   const redirect = await worker.fetch(new Request("https://uni.keysi.dev/soc"), {

@@ -21,6 +21,7 @@ vi.mock("../src/api", async (importOriginal) => ({
 }));
 
 afterEach(() => {
+  vi.unstubAllGlobals();
   history.replaceState(null, "", "/soc/");
   localStorage.clear();
   delete document.documentElement.dataset.theme;
@@ -84,20 +85,49 @@ describe("mini routes", () => {
     host.remove();
   });
 
-  test("persists an explicit day or night appearance", async () => {
+  test("toggles day and night directly while keeping system sync in a small menu", async () => {
     history.replaceState(null, "", "/soc/");
     const host = document.createElement("div");
     document.body.append(host);
     const root = createRoot(host);
     await act(async () => root.render(<App />));
 
-    const appearance = host.querySelector<HTMLSelectElement>('[aria-label="Appearance"]')!;
-    await act(async () => {
-      appearance.value = "dark";
-      appearance.dispatchEvent(new Event("change", { bubbles: true }));
-    });
+    const appearance = host.querySelector<HTMLButtonElement>('[aria-label="Night mode"]')!;
+    expect(appearance.getAttribute("aria-pressed")).toBe("false");
+    expect(host.querySelector('[popover="auto"]')?.textContent).toContain("Sync to system");
+    expect(host.querySelector("select")).toBeNull();
+    await act(async () => appearance.click());
     expect(document.documentElement.dataset.theme).toBe("dark");
     expect(localStorage.getItem("soc.theme")).toBe("dark");
+    expect(appearance.getAttribute("aria-pressed")).toBe("true");
+
+    await act(async () => root.unmount());
+    host.remove();
+  });
+
+  test("follows operating-system changes until a person chooses a theme", async () => {
+    let dark = false,
+      notify = () => {};
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      get matches() {
+        return dark;
+      },
+      addEventListener: (_type: string, listener: () => void) => {
+        if (query.includes("color-scheme")) notify = listener;
+      },
+      removeEventListener: vi.fn(),
+    }));
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    await act(async () => root.render(<App />));
+
+    const appearance = host.querySelector<HTMLButtonElement>('[aria-label="Night mode"]')!;
+    expect(localStorage.getItem("soc.theme")).toBe("system");
+    expect(appearance.getAttribute("aria-pressed")).toBe("false");
+    dark = true;
+    await act(async () => notify());
+    expect(appearance.getAttribute("aria-pressed")).toBe("true");
 
     await act(async () => root.unmount());
     host.remove();
